@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS 1.0</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/jarvis_icon.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/jarvis_icon.png') }}" alt="JARVIS" class="app-icon">
+                <span>JARVIS</span>
+            </div>
+            <nav>
+                <div class="nav-item active" id="nav-chat">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat</span>
+                </div>
+                <div class="nav-item" id="nav-dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" id="nav-logs">
+                    <i class="fas fa-terminal"></i>
+                    <span>Logs</span>
+                </div>
+                <div class="nav-item" id="nav-settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </div>
+            </nav>
+            <div class="system-status">
+                <div class="status-item">
+                    <span class="label">SYSTEM</span>
+                    <span class="value online" id="status-system">ONLINE</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">VOICE</span>
+                    <span class="value" id="status-voice">ACTIVE</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">MODEL</span>
+                    <span class="value" id="status-model">LOADING...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <div class="header-title">
+                    <h1>Command Center</h1>
+                    <p>AI Assistant System</p>
+                </div>
+
+                <div class="mode-switch-container">
+                    <span class="mode-label">TASK</span>
+                    <label class="switch">
+                        <input type="checkbox" id="mode-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="mode-label active">AI</span>
+                </div>
+
+                <div class="header-controls">
+                    <div class="credits">
+                        <span>Developed by Mayuk</span>
+                        <a href="https://github.com/MayukXT" target="_blank" class="github-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Context Usage Bar -->
+            <div class="context-bar-container">
+                <div class="context-bar-label">Context Window Usage</div>
+                <div class="context-progress">
+                    <div class="context-fill" id="context-fill" style="width: 0%"></div>
+                </div>
+                <div class="context-stats" id="context-stats">0 / 32000 tokens</div>
+            </div>
+
+            <!-- Chat View -->
+            <div id="view-chat" class="view-section active">
+                <div class="chat-area" id="chat-area">
+                    <div class="message bot">
+                        <div class="avatar">
+                            <img src="{{ url_for('static', filename='images/jarvis_icon.png') }}" alt="AI">
+                        </div>
+                        <div class="content">
+                            <p>System initialized. I am JARVIS. How may I assist you today?</p>
+                            <span class="timestamp">Now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-container">
+                        <button id="mic-btn" class="mic-btn"><i class="fas fa-microphone"></i></button>
+                        <textarea id="user-input" rows="1" placeholder="Write or speak..."></textarea>
+                        <button id="send-btn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    <div class="voice-visualizer" id="voice-visualizer">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section">
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>CPU Usage</h3>
+                        <div class="chart-container">
+                            <canvas id="cpuChart"></canvas>
+                        </div>
+                        <div class="metric-value" id="cpu-value">0%</div>
+                    </div>
+                    <div class="card">
+                        <h3>RAM Usage</h3>
+                        <div class="chart-container">
+                            <canvas id="ramChart"></canvas>
+                        </div>
+                        <div class="metric-value" id="ram-value">0%</div>
+                        <div class="metric-subtext" id="ram-mb">0 MB</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs View -->
+            <div id="view-logs" class="view-section">
+                <div id="logs-area"></div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="view-settings" class="view-section">
+                <div class="settings-container">
+                    <div class="setting-item">
+                        <span>AI Model</span>
+                        <select id="model-select" class="settings-dropdown">
+                            <option value="loading">Loading...</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <span>Voice Response</span>
+                        <label class="switch">
+                            <input type="checkbox" id="voice-toggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Toast -->
+            <div id="error-toast" class="error-toast">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="error-message">Error occurred</span>
+            </div>
+
+            <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        </div>
+    </div>
+</body>
+
+</html>
