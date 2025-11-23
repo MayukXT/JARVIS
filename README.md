@@ -17,7 +17,7 @@ Welcome to **JARVIS 1.0**! This is a personal AI assistant web application power
 JARVIS needs your Google Gemini API key to work. You must do this first.
 
 1.  **Get your API Key:**
-    *   Go to [Google AI Studio](https://aistudio.google.com/).
+    *   Go to [Google AI Studio](https://aistudio.google.com/). You need to use a 18+ Google account.
     *   Create a new API key.
     *   Copy the key, you will need it in the next steps.
 
